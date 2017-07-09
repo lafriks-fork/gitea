@@ -523,6 +523,10 @@ func RegisterRoutes(m *macaron.Macaron) {
 				return
 			}
 		})
+
+		m.Group("/branches", func() {
+			m.Get("/_new/*", context.RepoRef(), repo.CreateBranch)
+		}, reqRepoWriter, repo.MustBeNotBare)
 	}, reqSignIn, context.RepoAssignment(), context.UnitTypes(), context.LoadRepoUnits())
 
 	// Releases

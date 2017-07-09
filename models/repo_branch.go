@@ -5,7 +5,11 @@
 package models
 
 import (
+	"fmt"
+
 	"code.gitea.io/git"
+
+	"github.com/Unknwon/com"
 )
 
 // Branch holds the branch information
@@ -50,6 +54,58 @@ func (repo *Repository) GetBranch(branch string) (*Branch, error) {
 // GetBranches returns all the branches of a repository
 func (repo *Repository) GetBranches() ([]*Branch, error) {
 	return GetBranchesByPath(repo.RepoPath())
+}
+
+// CreateNewBranch creates a new repository branch
+func (repo *Repository) CreateNewBranch(doer *User, oldBranchName, branchName string) (err error) {
+	repoWorkingPool.CheckIn(com.ToStr(repo.ID))
+	defer repoWorkingPool.CheckOut(com.ToStr(repo.ID))
+
+	localPath := repo.LocalCopyPath()
+
+	if err = discardLocalRepoBranchChanges(localPath, oldBranchName); err != nil {
+		return fmt.Errorf("discardLocalRepoChanges: %v", err)
+	} else if err = repo.UpdateLocalCopyBranch(oldBranchName); err != nil {
+		return fmt.Errorf("UpdateLocalCopyBranch: %v", err)
+	}
+
+	if err = repo.CheckoutNewBranch(oldBranchName, branchName); err != nil {
+		return fmt.Errorf("CreateNewBranch: %v", err)
+	}
+
+	if err = git.Push(localPath, git.PushOptions{
+		Remote: "origin",
+		Branch: branchName,
+	}); err != nil {
+		return fmt.Errorf("Push: %v", err)
+	}
+
+	return nil
+}
+
+// CreateNewBranchFromCommit creates a new repository branch
+func (repo *Repository) CreateNewBranchFromCommit(doer *User, commit, branchName string) (err error) {
+	repoWorkingPool.CheckIn(com.ToStr(repo.ID))
+	defer repoWorkingPool.CheckOut(com.ToStr(repo.ID))
+
+	localPath := repo.LocalCopyPath()
+
+	if err = repo.UpdateLocalCopyToCommit(commit); err != nil {
+		return fmt.Errorf("UpdateLocalCopyBranch: %v", err)
+	}
+
+	if err = repo.CheckoutNewBranch(commit, branchName); err != nil {
+		return fmt.Errorf("CheckoutNewBranch: %v", err)
+	}
+
+	if err = git.Push(localPath, git.PushOptions{
+		Remote: "origin",
+		Branch: branchName,
+	}); err != nil {
+		return fmt.Errorf("Push: %v", err)
+	}
+
+	return nil
 }
 
 // GetCommit returns all the commits of a branch

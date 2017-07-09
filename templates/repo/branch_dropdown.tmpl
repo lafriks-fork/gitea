@@ -1,6 +1,6 @@
 <div class="fitted item choose reference">
-	<div class="ui floating filter dropdown" data-no-results="{{.i18n.Tr "repo.pulls.no_results"}}">
-			<div class="ui basic small button">
+	<div class="ui floating filter dropdown" data-can-create-branch="{{.CanCreateBranch}}" data-no-results="{{.i18n.Tr "repo.pulls.no_results"}}">
+		<div class="ui basic small button">
 			<span class="text">
 				<i class="octicon octicon-git-branch"></i>
 				{{if .IsViewBranch}}{{.i18n.Tr "repo.branch"}}{{else}}{{.i18n.Tr "repo.tree"}}{{end}}:
@@ -13,7 +13,7 @@
 				<i class="filter icon"></i>
 				<input name="search" placeholder="{{.i18n.Tr "repo.filter_branch_and_tag"}}...">
 			</div>
-			<div class="header">
+			<div class="header branch-tag-choice">
 				<div class="ui grid">
 					<div class="two column row">
 						<a class="reference column" href="#" data-target="#branch-list">
@@ -38,6 +38,21 @@
 				{{range .Tags}}
 					<div class="item {{if eq $.BranchName .}}selected{{end}}" data-url="{{$.RepoLink}}/{{if $.PageIsCommits}}commits{{else}}src{{end}}/{{EscapePound .}}{{if $.TreePath}}/{{EscapePound $.TreePath}}{{end}}">{{.}}</div>
 				{{end}}
+			</div>
+			<div class="create-branch-template" style="display: none">
+				<a href="{{.RepoLink}}/branches/_new/{{EscapePound .BranchName}}?name=${newBranchName|encodeURIComponent}" class="create-new-branch">
+					<div>
+						<i class="octicon octicon-git-branch"></i>
+						{{.i18n.Tr "repo.branch.create_branch" "${newBranchName}" | Safe}}
+					</div>
+					<div class="text small">
+						{{if or .IsViewBranch .IsViewTag}}
+							{{.i18n.Tr "repo.branch.create_from" .BranchName | Safe}}
+						{{else}}
+							{{.i18n.Tr "repo.branch.create_from" ShortSha .BranchName | Safe}}
+						{{end}}
+					</div>
+				</a>
 			</div>
 		</div>
 	</div>

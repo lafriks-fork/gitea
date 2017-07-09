@@ -7,6 +7,7 @@ package repo
 import (
 	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/context"
+	"code.gitea.io/gitea/modules/validation"
 )
 
 const (
@@ -29,4 +30,44 @@ func Branches(ctx *context.Context) {
 
 	ctx.Data["Branches"] = brs
 	ctx.HTML(200, tplBranch)
+}
+
+// CreateBranch creates new branch in repository
+func CreateBranch(ctx *context.Context) {
+	if !ctx.Repo.CanCreateBranch() {
+		ctx.Handle(404, "CreateBranch", nil)
+	}
+
+	newBranchName := ctx.Query("name")
+	if validation.GitRefNamePattern.MatchString(newBranchName) {
+		ctx.Flash.Error(ctx.Tr("form.NewBranchName") + ctx.Tr("form.git_ref_name_error"))
+		ctx.Redirect(ctx.Repo.RepoLink + "/src/" + ctx.Repo.BranchName)
+		return
+	}
+
+	if _, err := ctx.Repo.Repository.GetBranch(newBranchName); err == nil {
+		ctx.Flash.Error(ctx.Tr("repo.branch.branch_already_exists", newBranchName))
+		ctx.Redirect(ctx.Repo.RepoLink + "/src/" + ctx.Repo.BranchName)
+		return
+	}
+
+	if _, err := ctx.Repo.GitRepo.GetTag(newBranchName); err == nil {
+		ctx.Flash.Error(ctx.Tr("repo.branch.tag_already_exists", newBranchName))
+		ctx.Redirect(ctx.Repo.RepoLink + "/src/" + ctx.Repo.BranchName)
+		return
+	}
+
+	var err error
+	if ctx.Repo.IsViewBranch {
+		err = ctx.Repo.Repository.CreateNewBranch(ctx.User, ctx.Repo.BranchName, newBranchName)
+	} else {
+		err = ctx.Repo.Repository.CreateNewBranchFromCommit(ctx.User, ctx.Repo.BranchName, newBranchName)
+	}
+	if err != nil {
+		ctx.Handle(500, "CreateNewBranch", err)
+		return
+	}
+
+	ctx.Flash.Success(ctx.Tr("repo.branch.create_success", newBranchName))
+	ctx.Redirect(ctx.Repo.RepoLink + "/src/" + newBranchName)
 }
