@@ -40,12 +40,13 @@
 				{{end}}
 			</div>
 			<div class="create-branch-template" style="display: none">
-				<form action="{{.RepoLink}}/branches/_new/{{EscapePound .BranchName}}?name=${newBranchName|encodeURIComponent}" method="post" class="new-branch-form">
+				<form action="{{.RepoLink}}/branches/_new/{{EscapePound .BranchName}}" method="post" class="new-branch-form">
 					{{.CsrfTokenHtml}}
+					<input type="hidden" name="name">
 					<a href="#" class="create-new-branch">
 						<div>
 							<i class="octicon octicon-git-branch"></i>
-							{{.i18n.Tr "repo.branch.create_branch" "${newBranchName}" | Safe}}
+							{{.i18n.Tr "repo.branch.create_branch" `<span class="new-branch"></span>` | Safe}}
 						</div>
 						<div class="text small">
 							{{if or .IsViewBranch .IsViewTag}}

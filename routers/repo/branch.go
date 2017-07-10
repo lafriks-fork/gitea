@@ -5,6 +5,7 @@
 package repo
 
 import (
+	"code.gitea.io/gitea/modules/auth"
 	"code.gitea.io/gitea/modules/base"
 	"code.gitea.io/gitea/modules/context"
 	"code.gitea.io/gitea/modules/validation"
@@ -33,12 +34,12 @@ func Branches(ctx *context.Context) {
 }
 
 // CreateBranch creates new branch in repository
-func CreateBranch(ctx *context.Context) {
+func CreateBranch(ctx *context.Context, form auth.NewBranchForm) {
 	if !ctx.Repo.CanCreateBranch() {
 		ctx.Handle(404, "CreateBranch", nil)
 	}
 
-	newBranchName := ctx.Query("name")
+	newBranchName := form.Name
 	if validation.GitRefNamePattern.MatchString(newBranchName) {
 		ctx.Flash.Error(ctx.Tr("form.NewBranchName") + ctx.Tr("form.git_ref_name_error"))
 		ctx.Redirect(ctx.Repo.RepoLink + "/src/" + ctx.Repo.BranchName)

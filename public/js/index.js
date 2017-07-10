@@ -323,37 +323,6 @@ function initInstall() {
     });
 }
 
-function bindValues(template, data) {
-    if (!template) return '';
-    var i = 0, j = template.length;
-    while (i >= 0 && i < j) {
-        i = template.indexOf('${', i);
-        if (i === -1) break;
-        var ie = template.indexOf('}', i);
-        if (ie === -1) break;
-        var bindParts = template.substring(i + 2, ie).split('|', 2);
-        var bindValue = data[bindParts[0]] || '';
-        var safe = false;
-        if (bindValue.length > 0 && bindParts.length > 1) {
-            switch(bindParts[1]) {
-                case 'encodeURIComponent':
-                    safe = true;
-                    bindValue = encodeURIComponent(bindValue);
-                    break;
-                case 'safe':
-                    safe = true;
-                    break;
-            }
-        }
-        if (!safe) {
-            bindValue = $('<div>').text(bindValue).html();
-        }
-        template = template.substr(0, i) + bindValue + template.substr(ie + 1);
-        i = i + bindValue.length;
-    }
-    return template;
-}
-
 function initRepository() {
     if ($('.repository').length == 0) {
         return;
@@ -368,11 +337,10 @@ function initRepository() {
                 window.location.href = $choice.data('url');
             },
             onNoResults: function(searchTerm) {
+                $dropdown.find(".new-branch").text(encodeURIComponent(searchTerm))
+                $dropdown.find('input[name=name]').val(searchTerm)
                 if (canCreateBranch && $dropdown.data('can-create-branch') && selectedBranchChoice) {
-                    var html = bindValues($dropdown.find('.create-branch-template').html(), {
-                        'newBranchName': searchTerm
-                    });
-                    $dropdown.data().moduleDropdown.setting('message').noResults = html;
+                    $dropdown.data().moduleDropdown.setting('message').noResults = $dropdown.find('.create-branch-template').html();
                 } else {
                     $dropdown.data().moduleDropdown.setting('message').noResults = $dropdown.data('no-results');
                 }
