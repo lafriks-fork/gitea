@@ -388,6 +388,10 @@ function initRepository() {
                 }
             }
         });
+        $dropdown.on("click", ".new-branch-form", function(e) {
+            e.preventDefault();
+            this.submit();
+        });
         $dropdown.find('.branch-tag-choice a').on('click', function(e) {
             selectedBranchChoice = $(this).data('target') === '#branch-list';
             $dropdown.data().moduleDropdown.filter($dropdown.find('input[name=search]').val());
