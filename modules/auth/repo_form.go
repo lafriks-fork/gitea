@@ -408,3 +408,20 @@ type DeleteRepoFileForm struct {
 func (f *DeleteRepoFileForm) Validate(ctx *macaron.Context, errs binding.Errors) binding.Errors {
 	return validate(errs, ctx.Data, f, ctx.Locale)
 }
+
+// __________                             .__
+// \______   \____________    ____   ____ |  |__
+//  |    |  _/\_  __ \__  \  /    \_/ ___\|  |  \
+//  |    |   \ |  | \// __ \|   |  \  \___|   Y  \
+//  |______  / |__|  (____  /___|  /\___  >___|  /
+//         \/             \/     \/     \/     \/
+
+// NewBranchForm form for creating a new branch
+type NewBranchForm struct {
+	Name string `binding:"GitRefName;MaxSize(100)"`
+}
+
+// Validate validates the fields
+func (f *NewBranchForm) Validate(ctx *macaron.Context, errs binding.Errors) binding.Errors {
+	return validate(errs, ctx.Data, f, ctx.Locale)
+}
